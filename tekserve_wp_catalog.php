@@ -128,20 +128,39 @@ function tekcatalog_shortcode( $atts ) {
 	$book .= '<div class="">
 	' . retrieve_catalog_page( 0, $catalog_pages ) . '
 	</div>';
-	if( $howmanypages > 2 ) {
-		$book .= '
-		<div>
-		' . retrieve_catalog_page( 1, $catalog_pages ) . '
-		</div>';
-		$book .= '
-		<div>
-		' . retrieve_catalog_page( 2, $catalog_pages ) . '
-		</div>';
+	// if( $howmanypages > 2 ) {
+// 		$book .= '
+// 		<div>
+// 		' . retrieve_catalog_page( 1, $catalog_pages ) . '
+// 		</div>';
+// 		$book .= '
+// 		<div>
+// 		' . retrieve_catalog_page( 2, $catalog_pages ) . '
+// 		</div>';
+// 	}
+	for( $i = 1; $i < $howmanypages; $i++ ) {
+		$book .= '<div>';
+		$book .= retrieve_catalog_page( $i, $catalog_pages );
+		$book .= '</div>';
 	}
 	$book .= '
 	</div>
 	</div>';
+	$book .= print_r($howmanypages,true);
 // 	$book .= '<div>' . print_r( $catalog_pages, true ) . '</div>';
+	$catalog_page_ids = array();
+	$i=0;
+	foreach( $catalog_pages as $catalog_page ) {
+		$catalog_page_ids[$i] = $catalog_page->ID;
+		$i++;
+	}
+		$jsdata='<script type="text/javascript">
+		/* <![CDATA[ */
+		var tekserveCatalogData = \'' . serialize( $catalog_page_ids ) . '\';
+		/* ]]> */
+		</script>';
+		$book .= $jsdata;
+// 	add_action( 'genesis_meta', 'tekserve_catalog_js_data' );
 	add_action( 'genesis_after_footer', 'tekserve_book_js' );
 	return $book;
 }
@@ -152,12 +171,42 @@ function tekserve_book_js( ) {
 	global $howmanypages;
 	$bookjs = '
 	<script type="text/javascript">
+		function loadDynPage(page) {
+				var newPage = jQuery("<div />", {"class": "p"+page+" dynPage"}).html("<div class=\'pageLoader\'><h1>Loading...</h1><img src=\'' . plugins_url( '/images/ajax-loader.gif', __FILE__ ) . '\' /></div>");
+				jQuery(".tekserve-catalog").turn("addPage", newPage);
+				var place = "' . base64_encode( plugins_url( '', __FILE__ ) ) . '";
+				jQuery.ajax({
+				type		: "GET",
+				data		: {postid : (page - 1), allposts : tekserveCatalogData},
+				dataType	: "html",
+				timeout		: 12000,
+				url			: "' . plugins_url( '/dyn_page.php', __FILE__ ) . '",
+				beforeSend	: function(){
+					
+				},
+				success    : function(data){
+					$data = jQuery(data);
+					$body = $data.children("div");
+					if($data.length) {
+						console.log("returned with page: "+page+"- \n "+$body);
+// 						$data.hide();
+						jQuery(".p"+page+" .pageLoader").remove();
+						newPage.append($body);
+// 						$data.fadeIn();
+					}
+				},
+				error     : function(jqXHR, textStatus, errorThrown) {
+					jQuery(".p"+page+".pageLoader").hide();
+					alert(jqXHR + " :: " + textStatus + " :: " + errorThrown);
+				}
+			});
+			}
 		jQuery( document ).ready(function( $ ) {
 			$(".tekserve-catalog").turn({
 			  width: 1280,
 			  height: 640,
 			  elevation: 1,
-			  turnCorners: "tl,tr",
+			  turnCorners: "bl,br",
 			  autoCenter: true,
 			  pages: ' . $howmanypages . ',
 			});
@@ -165,17 +214,75 @@ function tekserve_book_js( ) {
 				flipbook: $(".tekserve-catalog"),
 				max: 2,
 			});
-			$("#zoom-viewport").bind("zoom.doubleTap", function(event) {
-				if ($(this).zoom("value")==1) {
-					$(this).zoom("zoomIn", event);
-				} else {
-					$(this).zoom("zoomOut");
-				}
-			});
+			//$("#zoom-viewport").bind("zoom.doubleTap", function(event) {
+			//	if ($(this).zoom("value")==1) {
+			//		$(this).zoom("zoomIn", event);
+			//	} else {
+			//		$(this).zoom("zoomOut");
+			//	}
+			//});
 			$(".tekserve-catalog").bind("turned", function(event, page, view) {
 				console.log("turned page: " + page);
-				$("img[usemap]").mapster("resize", 640);
+				resizeAll();
 			});
+			$( window ).resize(function() {
+			  console.log("Handler for .resize() called.");
+			  resizeAll();
+			});
+			
+// 			$(".tekserve-catalog").bind("turning", function(event, page, view) {
+// 			  console.log("Turning the page to: "+page);
+// 			  for (var i = 0; i < view.length; i++) {
+// 				  if(!$(this).turn("hasPage", view[i])) {
+// 					loadDynPage(view[i]);
+// 				  }
+// 				}
+// 			});
+// 			$(".tekserve-catalog").bind("missing", function(event, pages) {
+// 			  for (var i = 0; i < pages.length; i++) {
+// 				  if(!$(this).turn("hasPage", pages[i])) {
+// 				  	console.log("Loading page: "+pages[i]);
+// 					loadDynPage(pages[i]);
+// 				  }
+// 				}
+// 				resizeAll();
+// 			});
+			
+			
+			function resizeAll() {
+				var resizeWidth;
+				var displayMode = "double";
+				
+				if($( window ).width() < 321) {
+					resizeWidth = 320;
+					displayMode = "single";
+				}
+				else if($( window ).width() < 640) {
+					resizeWidth = 240;
+				}
+				else if($( window ).width() < 769) {
+					resizeWidth = 768;
+					displayMode = "single";
+				}
+				else if($( window ).width() < 1025) {
+					resizeWidth = 516;
+				}
+				else {
+					resizeWidth = 640;
+				}
+				$(".tekserve-catalog").turn("display", displayMode);
+				if( displayMode == "single" ) {
+					$(".tekserve-catalog").turn("size", resizeWidth, resizeWidth);
+				}
+				else {
+					$(".tekserve-catalog").turn("size", (resizeWidth*2), resizeWidth);
+				}
+				$("img[usemap]").mapster("resize", resizeWidth);
+			}
+			
+			resizeAll();
+			
+			
 		});
 		</script>
 		';
