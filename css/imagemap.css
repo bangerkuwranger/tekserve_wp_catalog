@@ -7,6 +7,27 @@
 	height: 640px;
 }
 
+#fullscreen-toggle {
+	background: #fff;
+	border: 2px solid #004d72;
+	border-radius: 6px;
+	font-size: 20px;
+	font-family: fontAwesome !important;
+	padding: .25em .5em;
+	position: absolute;
+	top: 50%;
+	right: 0em;
+	cursor: pointer;
+	z-index: 1000;
+	opacity: .5;
+}
+
+#fullscreen-toggle:hover {
+	background-color: #004d72;
+	color: #fff;
+	opacity: 1;
+}
+
 .imgmap-frontend-image > div {
 	height: 640px !important;
 	width: 640px !important;

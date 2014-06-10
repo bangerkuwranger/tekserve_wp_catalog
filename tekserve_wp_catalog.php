@@ -123,7 +123,7 @@ function tekcatalog_shortcode( $atts ) {
 	if( isset( $catalog_pages ) ) {
 		$howmanypages = count( $catalog_pages );
 	}
-	$book = '<div id="zoom-viewport">
+	$book = '<div id="zoom-viewport"><div id="fullscreen-toggle" title="Full Screen"></div>
 		<div class="tekserve-catalog" id="' . $bookid . '">';
 	$book .= '<div class="">
 	' . retrieve_catalog_page( 0, $catalog_pages ) . '
@@ -146,7 +146,7 @@ function tekcatalog_shortcode( $atts ) {
 	$book .= '
 	</div>
 	</div>';
-	$book .= print_r($howmanypages,true);
+// 	$book .= print_r($howmanypages,true);
 // 	$book .= '<div>' . print_r( $catalog_pages, true ) . '</div>';
 	$catalog_page_ids = array();
 	$i=0;
@@ -221,6 +221,10 @@ function tekserve_book_js( ) {
 			//		$(this).zoom("zoomOut");
 			//	}
 			//});
+			$(".tekserve-catalog").bind("turning", function(event, page, view) {
+				console.log("closed all tooltips on page: " + (page-1) );
+				$(".imagemapper-tooltip").remove();
+			});
 			$(".tekserve-catalog").bind("turned", function(event, page, view) {
 				console.log("turned page: " + page);
 				resizeAll();
@@ -317,14 +321,15 @@ function tekserve_wp_catalog_scripts() {
 	wp_enqueue_script( 'modernizr', plugins_url( '/lib/modernizr.2.5.3.min.js', __FILE__ ), array(), '2.5.3', true );
 	wp_enqueue_script( 'jgestures', plugins_url( '/lib/jgestures.min.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '0.9.0', true );
 	wp_enqueue_script( 'jquery-mousewheel', plugins_url( '/lib/jquery.mousewheel.min.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '3.0.6', true );
-	wp_enqueue_script( 'turn', plugins_url( '/lib/turn.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
+// 	wp_enqueue_script( 'turn', plugins_url( '/lib/turn.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
 // 	wp_enqueue_script( 'turn-html4', plugins_url( '/lib/turn.html4.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
-// 	wp_enqueue_script( 'turn', plugins_url( '/lib/turn.min.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
+	wp_enqueue_script( 'turn', plugins_url( '/lib/turn.min.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
 // 	wp_enqueue_script( 'turn-html4', plugins_url( '/lib/turn.html4.min.js', __FILE__ ), array( 'jquery', 'jquery-ui-core' ), '4.1.0', true );
 	wp_enqueue_script( 'hash', plugins_url( '/lib/hash.js', __FILE__ ), array( 'turn' ) );
-	wp_enqueue_script( 'turn-scissor', plugins_url( '/lib/scissor.js', __FILE__ ), array( 'turn' ) );
-// 	wp_enqueue_script( 'turn-scissor', plugins_url( '/lib/scissor.min.js', __FILE__ ), array( 'turn' ) );
-	wp_enqueue_script( 'turn-zoom', plugins_url( '/lib/zoom.js', __FILE__ ), array( 'turn' ) );
+// 	wp_enqueue_script( 'turn-scissor', plugins_url( '/lib/scissor.js', __FILE__ ), array( 'turn' ) );
+	wp_enqueue_script( 'turn-scissor', plugins_url( '/lib/scissor.min.js', __FILE__ ), array( 'turn' ) );
+// 	wp_enqueue_script( 'turn-zoom', plugins_url( '/lib/zoom.js', __FILE__ ), array( 'turn' ) );
 	wp_enqueue_style( 'tekserve-catalog-imagemap', plugins_url( '/css/imagemap.css', __FILE__ ) );
-// 	wp_enqueue_script( 'turn-zoom', plugins_url( '/lib/zoom.min.js', __FILE__ ), array( 'turn' ) );
+	wp_enqueue_script( 'turn-zoom', plugins_url( '/lib/zoom.min.js', __FILE__ ), array( 'turn' ) );
+	wp_enqueue_script( 'catalogfs', plugins_url( '/js/fullscreen-catalog.js', __FILE__ ), array(), '1.0', true );
 }
