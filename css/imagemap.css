@@ -178,6 +178,11 @@ div.imagemapper-tooltip.mapster_tooltip {
 }
 
 @media only screen and (max-width:768px) {
+	
+	
+	#fullscreen-toggle {
+		display: none;
+	}
 
 	#inner .wrap {
 		width: 768px;
